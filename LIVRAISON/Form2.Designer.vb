@@ -24,7 +24,7 @@ Partial Class ajouter_clt
     Private Sub InitializeComponent()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.Label1 = New System.Windows.Forms.Label()
-        Me.Txt_code = New System.Windows.Forms.TextBox()
+        Me.CBCode = New System.Windows.Forms.ComboBox()
         Me.Txt_nom = New System.Windows.Forms.TextBox()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.Txt_prenom = New System.Windows.Forms.TextBox()
@@ -66,12 +66,13 @@ Partial Class ajouter_clt
         Me.Label1.TabIndex = 1
         Me.Label1.Text = "Num Client"
         '
-        'Txt_code
+        'CBCode
         '
-        Me.Txt_code.Location = New System.Drawing.Point(274, 93)
-        Me.Txt_code.Name = "Txt_code"
-        Me.Txt_code.Size = New System.Drawing.Size(140, 22)
-        Me.Txt_code.TabIndex = 2
+        Me.CBCode.FormattingEnabled = True
+        Me.CBCode.Location = New System.Drawing.Point(274, 93)
+        Me.CBCode.Name = "CBCode"
+        Me.CBCode.Size = New System.Drawing.Size(140, 24)
+        Me.CBCode.TabIndex = 2
         '
         'Txt_nom
         '
@@ -228,7 +229,7 @@ Partial Class ajouter_clt
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.Txt_nom)
         Me.Controls.Add(Me.Label2)
-        Me.Controls.Add(Me.Txt_code)
+        Me.Controls.Add(Me.CBCode)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.Label6)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
@@ -243,7 +244,7 @@ Partial Class ajouter_clt
     End Sub
     Friend WithEvents Label6 As System.Windows.Forms.Label
     Friend WithEvents Label1 As System.Windows.Forms.Label
-    Friend WithEvents Txt_code As System.Windows.Forms.TextBox
+    Friend WithEvents CBCode As System.Windows.Forms.ComboBox
     Friend WithEvents Txt_nom As System.Windows.Forms.TextBox
     Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents Txt_prenom As System.Windows.Forms.TextBox
