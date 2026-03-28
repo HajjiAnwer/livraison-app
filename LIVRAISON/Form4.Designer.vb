@@ -28,7 +28,7 @@ Partial Class ajouter_bon_liv
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Txt_num_liv = New System.Windows.Forms.TextBox()
         Me.Txt_total_liv = New System.Windows.Forms.TextBox()
-        Me.Txt_code = New System.Windows.Forms.TextBox()
+        Me.CBCodeClt = New System.Windows.Forms.ComboBox()
         Me.Button1 = New System.Windows.Forms.Button()
         Me.Label5 = New System.Windows.Forms.Label()
         Me.Label6 = New System.Windows.Forms.Label()
@@ -127,21 +127,22 @@ Partial Class ajouter_bon_liv
         Me.Txt_total_liv.Size = New System.Drawing.Size(78, 22)
         Me.Txt_total_liv.TabIndex = 6
         '
-        'Txt_code
+        'CBCodeClt
         '
-        Me.Txt_code.Location = New System.Drawing.Point(158, 31)
-        Me.Txt_code.Name = "Txt_code"
-        Me.Txt_code.Size = New System.Drawing.Size(74, 22)
-        Me.Txt_code.TabIndex = 7
+        Me.CBCodeClt.FormattingEnabled = True
+        Me.CBCodeClt.Location = New System.Drawing.Point(158, 31)
+        Me.CBCodeClt.Name = "CBCodeClt"
+        Me.CBCodeClt.Size = New System.Drawing.Size(112, 24)
+        Me.CBCodeClt.TabIndex = 7
         '
         'Button1
         '
         Me.Button1.BackColor = System.Drawing.Color.FromArgb(CType(CType(128, Byte), Integer), CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer))
         Me.Button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.Button1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Button1.Location = New System.Drawing.Point(600, 278)
+        Me.Button1.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Button1.Location = New System.Drawing.Point(645, 278)
         Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(121, 33)
+        Me.Button1.Size = New System.Drawing.Size(140, 33)
         Me.Button1.TabIndex = 8
         Me.Button1.Text = "Ajouter Ligne"
         Me.Button1.UseVisualStyleBackColor = False
@@ -225,7 +226,7 @@ Partial Class ajouter_bon_liv
         Me.GroupBox1.Controls.Add(Me.DateTimePicker1)
         Me.GroupBox1.Controls.Add(Me.Label2)
         Me.GroupBox1.Controls.Add(Me.Txtadresse)
-        Me.GroupBox1.Controls.Add(Me.Txt_code)
+        Me.GroupBox1.Controls.Add(Me.CBCodeClt)
         Me.GroupBox1.Controls.Add(Me.Label8)
         Me.GroupBox1.Controls.Add(Me.Label5)
         Me.GroupBox1.Controls.Add(Me.Label7)
@@ -236,7 +237,7 @@ Partial Class ajouter_bon_liv
         Me.GroupBox1.ForeColor = System.Drawing.Color.White
         Me.GroupBox1.Location = New System.Drawing.Point(23, 45)
         Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(699, 183)
+        Me.GroupBox1.Size = New System.Drawing.Size(748, 183)
         Me.GroupBox1.TabIndex = 16
         Me.GroupBox1.TabStop = False
         Me.GroupBox1.Text = "Bon Livraison"
@@ -386,7 +387,7 @@ Partial Class ajouter_bon_liv
         Me.DG1.Name = "DG1"
         Me.DG1.RowHeadersWidth = 20
         Me.DG1.RowTemplate.Height = 24
-        Me.DG1.Size = New System.Drawing.Size(560, 96)
+        Me.DG1.Size = New System.Drawing.Size(610, 96)
         Me.DG1.TabIndex = 27
         '
         'Column1
@@ -437,10 +438,10 @@ Partial Class ajouter_bon_liv
         '
         Me.Button2.BackColor = System.Drawing.Color.Cyan
         Me.Button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.Button2.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Button2.Location = New System.Drawing.Point(600, 238)
+        Me.Button2.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Button2.Location = New System.Drawing.Point(645, 238)
         Me.Button2.Name = "Button2"
-        Me.Button2.Size = New System.Drawing.Size(121, 33)
+        Me.Button2.Size = New System.Drawing.Size(140, 33)
         Me.Button2.TabIndex = 29
         Me.Button2.Text = "Ajouter BL"
         Me.Button2.UseVisualStyleBackColor = False
@@ -450,7 +451,7 @@ Partial Class ajouter_bon_liv
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(122, Byte), Integer), CType(CType(122, Byte), Integer), CType(CType(247, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(748, 404)
+        Me.ClientSize = New System.Drawing.Size(810, 430)
         Me.Controls.Add(Me.Label15)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.CBproduit)
@@ -486,7 +487,7 @@ Partial Class ajouter_bon_liv
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents Txt_num_liv As System.Windows.Forms.TextBox
     Friend WithEvents Txt_total_liv As System.Windows.Forms.TextBox
-    Friend WithEvents Txt_code As System.Windows.Forms.TextBox
+    Friend WithEvents CBCodeClt As System.Windows.Forms.ComboBox
     Friend WithEvents Button1 As System.Windows.Forms.Button
     Friend WithEvents Label5 As System.Windows.Forms.Label
     Friend WithEvents Label6 As System.Windows.Forms.Label

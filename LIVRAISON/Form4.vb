@@ -1,4 +1,165 @@
-﻿Public Class ajouter_bon_liv
+Public Class ajouter_bon_liv
+
+    Private EnMiseAJourClient As Boolean = False
+
+    Private Sub PopulerCodesClientsBL()
+        Try
+            Dim texteSaisi As String = CBCodeClt.Text.Trim()
+            CBCodeClt.Items.Clear()
+
+            open()
+            cmd.Connection = con
+            cmd.CommandText = "SELECT code_clt FROM client ORDER BY code_clt"
+            cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            dr = cmd.ExecuteReader()
+
+            While dr.Read()
+                CBCodeClt.Items.Add(dr("code_clt").ToString())
+            End While
+
+            dr.Close()
+
+            If texteSaisi <> "" Then
+                CBCodeClt.Text = texteSaisi
+                CBCodeClt.SelectionStart = CBCodeClt.Text.Length
+                CBCodeClt.SelectionLength = 0
+            End If
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors du chargement des codes client: " & ex.Message)
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
+    Private Sub ChargerBonLivraisonExistants()
+        Try
+            DG1.Rows.Clear()
+
+            open()
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = "SELECT l.num_ligne, l.code_prod, ISNULL(p.nom_prod, '') AS nom_prod, ISNULL(p.prix_prod, 0) AS prix_prod, l.quantite, l.total_ligne FROM lignelivraison l LEFT JOIN produit p ON p.code_prod = l.code_prod ORDER BY l.num_liv, l.num_ligne"
+            dr = cmd.ExecuteReader()
+
+            While dr.Read()
+                Dim idx As Integer = DG1.Rows.Add(dr("num_ligne").ToString(), dr("code_prod").ToString(), dr("nom_prod").ToString(), dr("prix_prod").ToString(), dr("quantite").ToString(), dr("total_ligne").ToString())
+                DG1.Rows(idx).Tag = "DB"
+            End While
+
+            dr.Close()
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors du chargement des bons livraison: " & ex.Message)
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
+    Private Sub ViderChampsSaisieBL()
+        Txtadresse.Text = ""
+        Txtcodea.Text = ""
+        Txtligne.Text = ""
+        Txt_total_liv.Text = "0"
+        Txt_num_liv.Text = "1"
+        Txt_nom.Text = ""
+        Txtnub1.Text = ""
+        Txtprix.Text = ""
+        Txtqun.Text = ""
+        Txttel.Text = ""
+        CBCodeClt.Text = ""
+        CBclt.SelectedIndex = -1
+        CBproduit.SelectedIndex = -1
+        InitialiserNumeroBL()
+    End Sub
+
+    Private Sub InitialiserNumeroBL()
+        Try
+            open()
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = "SELECT ISNULL(MAX(num_liv), 0) + 1 FROM lignelivraison"
+            Txtnub1.Text = cmd.ExecuteScalar().ToString()
+        Catch ex As Exception
+            Txtnub1.Text = "1"
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
+    Private Sub AutoRemplirClientParCode()
+        If CBCodeClt.Text.Trim() = "" Then
+            EnMiseAJourClient = True
+            Txt_nom.Text = ""
+            Txtadresse.Text = ""
+            Txttel.Text = ""
+            CBclt.Text = ""
+            EnMiseAJourClient = False
+            Exit Sub
+        End If
+
+        Dim codeClient As Decimal
+        If Not Decimal.TryParse(CBCodeClt.Text.Trim(), codeClient) Then
+            EnMiseAJourClient = True
+            Txt_nom.Text = ""
+            Txtadresse.Text = ""
+            Txttel.Text = ""
+            CBclt.Text = ""
+            EnMiseAJourClient = False
+            Exit Sub
+        End If
+
+        Try
+            Dim prenomClient As String = ""
+
+            open()
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = "SELECT nom, prenom, adresse, telephone FROM client WHERE code_clt = @code_clt"
+            cmd.Parameters.AddWithValue("@code_clt", codeClient)
+            dr = cmd.ExecuteReader()
+
+            If dr.Read() Then
+                prenomClient = dr("prenom").ToString()
+
+                EnMiseAJourClient = True
+                Txt_nom.Text = dr("nom").ToString()
+                Txtadresse.Text = dr("adresse").ToString()
+                Txttel.Text = dr("telephone").ToString()
+                EnMiseAJourClient = False
+            Else
+                EnMiseAJourClient = True
+                Txt_nom.Text = ""
+                Txtadresse.Text = ""
+                Txttel.Text = ""
+                CBclt.Text = ""
+                EnMiseAJourClient = False
+            End If
+
+            dr.Close()
+
+            If prenomClient <> "" Then
+                EnMiseAJourClient = True
+                CBclt.Text = prenomClient
+                EnMiseAJourClient = False
+            End If
+        Catch ex As Exception
+            MessageBox.Show("Erreur: " & ex.Message)
+        Finally
+            EnMiseAJourClient = False
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
 
     Private Function LireDecimal(ByVal valeur As String, ByRef resultat As Decimal) As Boolean
         Return Decimal.TryParse(valeur, resultat)
@@ -26,16 +187,41 @@
 
     End Sub
 
-    Private Sub TextBox4_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Txt_code.TextChanged
+    Private Sub TextBox4_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeClt.TextChanged
 
     End Sub
 
     Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button1.Click
         Dim quantite As Decimal
         Dim totalLigne As Decimal
+        Dim numLigne As Integer
+        Dim codeProduit As Integer
+        Dim numLiv As Integer
 
         If CBproduit.SelectedItem Is Nothing Then
             MessageBox.Show("Veuillez choisir un produit.")
+            Exit Sub
+        End If
+
+        If Txtnub1.Text.Trim() = "" Then
+            InitialiserNumeroBL()
+        End If
+
+        If Not Integer.TryParse(Txt_num_liv.Text.Trim(), numLigne) Then
+            MessageBox.Show("Numero de ligne invalide.")
+            Txt_num_liv.Focus()
+            Exit Sub
+        End If
+
+        If Not Integer.TryParse(Txtcodea.Text.Trim(), codeProduit) Then
+            MessageBox.Show("Code produit invalide.")
+            Txtcodea.Focus()
+            Exit Sub
+        End If
+
+        If Not Integer.TryParse(Txtnub1.Text.Trim(), numLiv) Then
+            MessageBox.Show("Numero BL invalide.")
+            Txtnub1.Focus()
             Exit Sub
         End If
 
@@ -51,15 +237,36 @@
             Exit Sub
         End If
 
-        Dim row As String() = {Txt_num_liv.Text.Trim(), Txtcodea.Text.Trim(), CBproduit.SelectedItem.ToString(), Txtprix.Text.Trim(), Txtqun.Text.Trim(), Txtligne.Text.Trim()}
-        DG1.Rows.Add(row)
-        Txt_total_liv.Text = CDbl(Txt_total_liv.Text) + CDbl(Txtligne.Text)
+        Try
+            open()
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.CommandText = "INSERT INTO lignelivraison (num_ligne, quantite, total_ligne, num_liv, code_prod) VALUES (@num_ligne, @quantite, @total_ligne, @num_liv, @code_prod)"
+            cmd.Parameters.Clear()
+            cmd.Parameters.AddWithValue("@num_ligne", numLigne)
+            cmd.Parameters.AddWithValue("@quantite", quantite)
+            cmd.Parameters.AddWithValue("@total_ligne", totalLigne)
+            cmd.Parameters.AddWithValue("@num_liv", numLiv)
+            cmd.Parameters.AddWithValue("@code_prod", codeProduit)
+            cmd.ExecuteNonQuery()
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors de l'ajout de ligne: " & ex.Message)
+            Exit Sub
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+
+        ChargerBonLivraisonExistants()
+
+        Txt_total_liv.Text = CDec(Txt_total_liv.Text) + CDec(Txtligne.Text)
         Txtprix.Text = ""
         Txtcodea.Text = ""
         Txtqun.Text = ""
         Txtligne.Text = ""
+        CBproduit.SelectedIndex = -1
         Txt_num_liv.Text = CInt(Txt_num_liv.Text) + 1
-
     End Sub
 
     Private Sub Label6_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Label6.Click
@@ -76,57 +283,101 @@
 
     Private Sub ajouter_bon_liv_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         chargerclients(CBclt)
+        Button2.Text = "Ajouter BL"
+        Button1.Text = "Ajouter Ligne"
+        CBCodeClt.AutoCompleteMode = AutoCompleteMode.SuggestAppend
+        CBCodeClt.AutoCompleteSource = AutoCompleteSource.ListItems
+        PopulerCodesClientsBL()
+
         chargerproduit(CBproduit)
-        Txt_num_liv.Text = 1
-        Txt_total_liv.Text = 0
+        ChargerBonLivraisonExistants()
+        InitialiserNumeroBL()
+
+        Txt_num_liv.Text = "1"
+        Txt_total_liv.Text = "0"
+    End Sub
+
+    Private Sub CBCodeClt_SelectionChangeCommitted(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeClt.SelectionChangeCommitted
+        AutoRemplirClientParCode()
+    End Sub
+
+    Private Sub CBCodeClt_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeClt.Click
+        If CBCodeClt.Items.Count > 0 Then
+            CBCodeClt.DroppedDown = True
+        End If
+    End Sub
+
+    Private Sub CBCodeClt_Leave(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeClt.Leave
+        If CBCodeClt.FindStringExact(CBCodeClt.Text.Trim()) >= 0 Then
+            AutoRemplirClientParCode()
+        End If
     End Sub
 
     Private Sub CBclt_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBclt.SelectedIndexChanged
+        If EnMiseAJourClient Then
+            Exit Sub
+        End If
+
+        If CBclt.SelectedItem Is Nothing Then
+            Exit Sub
+        End If
+
         Try
             open()
-            cmd.Parameters.Clear()
-
-            cmd.CommandText = ("SELECT code_clt, nom, adresse, telephone FROM client WHERE prenom = @prenom")
             cmd.Connection = con
             cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = "SELECT code_clt, nom, adresse, telephone FROM client WHERE prenom = @prenom"
             cmd.Parameters.AddWithValue("@prenom", CBclt.SelectedItem.ToString())
             dr = cmd.ExecuteReader()
+
             If dr.Read() Then
-                Txt_code.Text = dr("code_clt").ToString()
+                EnMiseAJourClient = True
+                CBCodeClt.Text = dr("code_clt").ToString()
                 Txt_nom.Text = dr("nom").ToString()
                 Txtadresse.Text = dr("adresse").ToString()
                 Txttel.Text = dr("telephone").ToString()
-
-
+                EnMiseAJourClient = False
             End If
+
             dr.Close()
         Catch ex As Exception
             MessageBox.Show("erruerr" & ex.Message)
+        Finally
+            EnMiseAJourClient = False
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
         End Try
-        con.Close()
     End Sub
 
     Private Sub CBproduit_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBproduit.SelectedIndexChanged
+        If CBproduit.SelectedItem Is Nothing Then
+            Exit Sub
+        End If
+
         Try
             open()
-            cmd.Parameters.Clear()
-
-            cmd.CommandText = ("SELECT code_prod, prix_prod FROM produit WHERE nom_prod  = @nom_prod")
             cmd.Connection = con
             cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = "SELECT code_prod, prix_prod FROM produit WHERE nom_prod = @nom_prod"
             cmd.Parameters.AddWithValue("@nom_prod", CBproduit.SelectedItem.ToString())
             dr = cmd.ExecuteReader()
+
             If dr.Read() Then
                 Txtcodea.Text = dr("code_prod").ToString()
                 Txtprix.Text = dr("prix_prod").ToString()
-               
-
             End If
+
             dr.Close()
         Catch ex As Exception
             MessageBox.Show("erruerr" & ex.Message)
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
         End Try
-        con.Close()
     End Sub
 
     Private Sub Txtligne_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Txtqun.TextChanged, Txtprix.TextChanged
@@ -134,63 +385,9 @@
     End Sub
 
     Private Sub Button2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button2.Click
-        If DG1.Rows.Count = 0 OrElse (DG1.Rows.Count = 1 AndAlso DG1.Rows(0).IsNewRow) Then
-            MessageBox.Show("Ajoutez au moins une ligne avant de sauvegarder.")
-            Exit Sub
-        End If
-
-        If Txtnub1.Text.Trim() = "" Then
-            MessageBox.Show("Veuillez saisir le numero BL.")
-            Txtnub1.Focus()
-            Exit Sub
-        End If
-
-        open()
-        cmd.CommandText = "INSERT INTO lignelivraison (num_ligne, quantite, total_ligne, num_liv, code_prod) Values(@num_ligne, @quantite, @total_ligne, @num_liv, @code_prod)"
-        cmd.Connection = con
-        cmd.CommandType = CommandType.Text
-        Try
-            For Each row As DataGridViewRow In DG1.Rows
-                If Not row.IsNewRow Then
-                    cmd.Parameters.Clear()
-
-
-                    cmd.Parameters.AddWithValue("@num_ligne", CInt(row.Cells(0).Value))
-                    cmd.Parameters.AddWithValue("@quantite", CDec(row.Cells(4).Value))
-                    cmd.Parameters.AddWithValue("@total_ligne", CDec(row.Cells(5).Value))
-                    cmd.Parameters.AddWithValue("@num_liv", CInt(Txtnub1.Text.Trim()))
-                    cmd.Parameters.AddWithValue("@code_prod", CInt(row.Cells(1).Value))
-                    cmd.ExecuteNonQuery()
-
-                End If
-            Next
-            MessageBox.Show("Commande enregistree avec succes.")
-        Catch ex As Exception
-            MessageBox.Show("Erreur:" & ex.Message)
-
-            Exit Sub
-        Finally
-            If con.State = ConnectionState.Open Then
-                con.Close()
-            End If
-        End Try
-
-        DG1.Rows.Clear()
-        Txtadresse.Text = ""
-        Txtcodea.Text = ""
-        Txtligne.Text = ""
-        Txt_total_liv.Text = "0"
-        Txt_num_liv.Text = "1"
-        Txt_nom.Text = ""
-        Txtnub1.Text = ""
-        Txtprix.Text = ""
-        Txtqun.Text = ""
-        Txttel.Text = ""
-        Txt_code.Text = ""
-        CBclt.SelectedIndex = -1
-        CBproduit.SelectedIndex = -1
-
-
+        MessageBox.Show("Les lignes sont deja enregistrees lors de 'Ajouter Ligne'.")
+        ChargerBonLivraisonExistants()
+        ViderChampsSaisieBL()
     End Sub
 
 End Class
