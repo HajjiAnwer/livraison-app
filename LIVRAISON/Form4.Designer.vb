@@ -42,7 +42,7 @@ Partial Class ajouter_bon_liv
         Me.Txtnub1 = New System.Windows.Forms.TextBox()
         Me.Label14 = New System.Windows.Forms.Label()
         Me.DateTimePicker1 = New System.Windows.Forms.DateTimePicker()
-        Me.Txtcodea = New System.Windows.Forms.TextBox()
+        Me.CBCodeProd = New System.Windows.Forms.ComboBox()
         Me.Txtprix = New System.Windows.Forms.TextBox()
         Me.Txtqun = New System.Windows.Forms.TextBox()
         Me.Txtligne = New System.Windows.Forms.TextBox()
@@ -278,12 +278,13 @@ Partial Class ajouter_bon_liv
         Me.DateTimePicker1.Size = New System.Drawing.Size(95, 22)
         Me.DateTimePicker1.TabIndex = 17
         '
-        'Txtcodea
+        'CBCodeProd
         '
-        Me.Txtcodea.Location = New System.Drawing.Point(133, 361)
-        Me.Txtcodea.Name = "Txtcodea"
-        Me.Txtcodea.Size = New System.Drawing.Size(78, 22)
-        Me.Txtcodea.TabIndex = 17
+        Me.CBCodeProd.FormattingEnabled = True
+        Me.CBCodeProd.Location = New System.Drawing.Point(133, 360)
+        Me.CBCodeProd.Name = "CBCodeProd"
+        Me.CBCodeProd.Size = New System.Drawing.Size(95, 24)
+        Me.CBCodeProd.TabIndex = 17
         '
         'Txtprix
         '
@@ -465,7 +466,7 @@ Partial Class ajouter_bon_liv
         Me.Controls.Add(Me.Txtligne)
         Me.Controls.Add(Me.Txtqun)
         Me.Controls.Add(Me.Txtprix)
-        Me.Controls.Add(Me.Txtcodea)
+        Me.Controls.Add(Me.CBCodeProd)
         Me.Controls.Add(Me.GroupBox1)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.Txt_num_liv)
@@ -500,7 +501,7 @@ Partial Class ajouter_bon_liv
     Friend WithEvents Txtnub1 As System.Windows.Forms.TextBox
     Friend WithEvents Label14 As System.Windows.Forms.Label
     Friend WithEvents DateTimePicker1 As System.Windows.Forms.DateTimePicker
-    Friend WithEvents Txtcodea As System.Windows.Forms.TextBox
+    Friend WithEvents CBCodeProd As System.Windows.Forms.ComboBox
     Friend WithEvents Txtprix As System.Windows.Forms.TextBox
     Friend WithEvents Txtqun As System.Windows.Forms.TextBox
     Friend WithEvents Txtligne As System.Windows.Forms.TextBox

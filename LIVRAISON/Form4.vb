@@ -1,6 +1,7 @@
 Public Class ajouter_bon_liv
 
     Private EnMiseAJourClient As Boolean = False
+    Private EnMiseAJourProduit As Boolean = False
 
     Private Sub PopulerCodesClientsBL()
         Try
@@ -34,6 +35,38 @@ Public Class ajouter_bon_liv
         End Try
     End Sub
 
+    Private Sub PopulerCodesProduitsBL()
+        Try
+            Dim texteSaisi As String = CBCodeProd.Text.Trim()
+            CBCodeProd.Items.Clear()
+
+            open()
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = "SELECT code_prod FROM produit ORDER BY code_prod"
+            dr = cmd.ExecuteReader()
+
+            While dr.Read()
+                CBCodeProd.Items.Add(dr("code_prod").ToString())
+            End While
+
+            dr.Close()
+
+            If texteSaisi <> "" Then
+                CBCodeProd.Text = texteSaisi
+                CBCodeProd.SelectionStart = CBCodeProd.Text.Length
+                CBCodeProd.SelectionLength = 0
+            End If
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors du chargement des codes produit: " & ex.Message)
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
     Private Sub ChargerBonLivraisonExistants()
         Try
             DG1.Rows.Clear()
@@ -46,8 +79,7 @@ Public Class ajouter_bon_liv
             dr = cmd.ExecuteReader()
 
             While dr.Read()
-                Dim idx As Integer = DG1.Rows.Add(dr("num_ligne").ToString(), dr("code_prod").ToString(), dr("nom_prod").ToString(), dr("prix_prod").ToString(), dr("quantite").ToString(), dr("total_ligne").ToString())
-                DG1.Rows(idx).Tag = "DB"
+                DG1.Rows.Add(dr("num_ligne").ToString(), dr("code_prod").ToString(), dr("nom_prod").ToString(), dr("prix_prod").ToString(), dr("quantite").ToString(), dr("total_ligne").ToString())
             End While
 
             dr.Close()
@@ -62,7 +94,7 @@ Public Class ajouter_bon_liv
 
     Private Sub ViderChampsSaisieBL()
         Txtadresse.Text = ""
-        Txtcodea.Text = ""
+        CBCodeProd.Text = ""
         Txtligne.Text = ""
         Txt_total_liv.Text = "0"
         Txt_num_liv.Text = "1"
@@ -161,6 +193,56 @@ Public Class ajouter_bon_liv
         End Try
     End Sub
 
+    Private Sub AutoRemplirProduitParCode()
+        If CBCodeProd.Text.Trim() = "" Then
+            EnMiseAJourProduit = True
+            CBproduit.Text = ""
+            Txtprix.Text = ""
+            EnMiseAJourProduit = False
+            Exit Sub
+        End If
+
+        Dim codeProduit As Decimal
+        If Not Decimal.TryParse(CBCodeProd.Text.Trim(), codeProduit) Then
+            EnMiseAJourProduit = True
+            CBproduit.Text = ""
+            Txtprix.Text = ""
+            EnMiseAJourProduit = False
+            Exit Sub
+        End If
+
+        Try
+            open()
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = "SELECT nom_prod, prix_prod FROM produit WHERE code_prod = @code_prod"
+            cmd.Parameters.AddWithValue("@code_prod", codeProduit)
+            dr = cmd.ExecuteReader()
+
+            If dr.Read() Then
+                EnMiseAJourProduit = True
+                CBproduit.Text = dr("nom_prod").ToString()
+                Txtprix.Text = dr("prix_prod").ToString()
+                EnMiseAJourProduit = False
+            Else
+                EnMiseAJourProduit = True
+                CBproduit.Text = ""
+                Txtprix.Text = ""
+                EnMiseAJourProduit = False
+            End If
+
+            dr.Close()
+        Catch ex As Exception
+            MessageBox.Show("Erreur: " & ex.Message)
+        Finally
+            EnMiseAJourProduit = False
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
     Private Function LireDecimal(ByVal valeur As String, ByRef resultat As Decimal) As Boolean
         Return Decimal.TryParse(valeur, resultat)
     End Function
@@ -173,14 +255,6 @@ Public Class ajouter_bon_liv
         Else
             Txtligne.Text = ""
         End If
-    End Sub
-
-    Private Sub Label3_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Label3.Click
-
-    End Sub
-
-    Private Sub TextBox2_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs)
-
     End Sub
 
     Private Sub TextBox3_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Txt_total_liv.TextChanged
@@ -213,9 +287,9 @@ Public Class ajouter_bon_liv
             Exit Sub
         End If
 
-        If Not Integer.TryParse(Txtcodea.Text.Trim(), codeProduit) Then
+        If Not Integer.TryParse(CBCodeProd.Text.Trim(), codeProduit) Then
             MessageBox.Show("Code produit invalide.")
-            Txtcodea.Focus()
+            CBCodeProd.Focus()
             Exit Sub
         End If
 
@@ -262,34 +336,27 @@ Public Class ajouter_bon_liv
 
         Txt_total_liv.Text = CDec(Txt_total_liv.Text) + CDec(Txtligne.Text)
         Txtprix.Text = ""
-        Txtcodea.Text = ""
+        CBCodeProd.Text = ""
         Txtqun.Text = ""
         Txtligne.Text = ""
         CBproduit.SelectedIndex = -1
         Txt_num_liv.Text = CInt(Txt_num_liv.Text) + 1
     End Sub
 
-    Private Sub Label6_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Label6.Click
-
-    End Sub
-
-    Private Sub Label2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Label2.Click
-
-    End Sub
-
-    Private Sub ListBox1_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs)
-
-    End Sub
-
     Private Sub ajouter_bon_liv_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         chargerclients(CBclt)
         Button2.Text = "Ajouter BL"
         Button1.Text = "Ajouter Ligne"
+
         CBCodeClt.AutoCompleteMode = AutoCompleteMode.SuggestAppend
         CBCodeClt.AutoCompleteSource = AutoCompleteSource.ListItems
         PopulerCodesClientsBL()
 
         chargerproduit(CBproduit)
+        CBCodeProd.AutoCompleteMode = AutoCompleteMode.SuggestAppend
+        CBCodeProd.AutoCompleteSource = AutoCompleteSource.ListItems
+        PopulerCodesProduitsBL()
+
         ChargerBonLivraisonExistants()
         InitialiserNumeroBL()
 
@@ -310,6 +377,22 @@ Public Class ajouter_bon_liv
     Private Sub CBCodeClt_Leave(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeClt.Leave
         If CBCodeClt.FindStringExact(CBCodeClt.Text.Trim()) >= 0 Then
             AutoRemplirClientParCode()
+        End If
+    End Sub
+
+    Private Sub CBCodeProd_SelectionChangeCommitted(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeProd.SelectionChangeCommitted
+        AutoRemplirProduitParCode()
+    End Sub
+
+    Private Sub CBCodeProd_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeProd.Click
+        If CBCodeProd.Items.Count > 0 Then
+            CBCodeProd.DroppedDown = True
+        End If
+    End Sub
+
+    Private Sub CBCodeProd_Leave(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeProd.Leave
+        If CBCodeProd.FindStringExact(CBCodeProd.Text.Trim()) >= 0 Then
+            AutoRemplirProduitParCode()
         End If
     End Sub
 
@@ -352,6 +435,10 @@ Public Class ajouter_bon_liv
     End Sub
 
     Private Sub CBproduit_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBproduit.SelectedIndexChanged
+        If EnMiseAJourProduit Then
+            Exit Sub
+        End If
+
         If CBproduit.SelectedItem Is Nothing Then
             Exit Sub
         End If
@@ -366,14 +453,17 @@ Public Class ajouter_bon_liv
             dr = cmd.ExecuteReader()
 
             If dr.Read() Then
-                Txtcodea.Text = dr("code_prod").ToString()
+                EnMiseAJourProduit = True
+                CBCodeProd.Text = dr("code_prod").ToString()
                 Txtprix.Text = dr("prix_prod").ToString()
+                EnMiseAJourProduit = False
             End If
 
             dr.Close()
         Catch ex As Exception
             MessageBox.Show("erruerr" & ex.Message)
         Finally
+            EnMiseAJourProduit = False
             If con.State = ConnectionState.Open Then
                 con.Close()
             End If
