@@ -27,7 +27,7 @@ Partial Class ajouter_prod
         Me.Label2 = New System.Windows.Forms.Label()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.Label4 = New System.Windows.Forms.Label()
-        Me.Txt_code_prod = New System.Windows.Forms.TextBox()
+        Me.CBCodeProd = New System.Windows.Forms.ComboBox()
         Me.Txt_quantiteprod = New System.Windows.Forms.TextBox()
         Me.Txt_prixprod = New System.Windows.Forms.TextBox()
         Me.Txt_nomprod = New System.Windows.Forms.TextBox()
@@ -96,12 +96,13 @@ Partial Class ajouter_prod
         Me.Label4.TabIndex = 4
         Me.Label4.Text = "Prix"
         '
-        'Txt_code_prod
+        'CBCodeProd
         '
-        Me.Txt_code_prod.Location = New System.Drawing.Point(276, 93)
-        Me.Txt_code_prod.Name = "Txt_code_prod"
-        Me.Txt_code_prod.Size = New System.Drawing.Size(140, 22)
-        Me.Txt_code_prod.TabIndex = 2
+        Me.CBCodeProd.FormattingEnabled = True
+        Me.CBCodeProd.Location = New System.Drawing.Point(276, 93)
+        Me.CBCodeProd.Name = "CBCodeProd"
+        Me.CBCodeProd.Size = New System.Drawing.Size(140, 24)
+        Me.CBCodeProd.TabIndex = 2
         '
         'Txt_quantiteprod
         '
@@ -192,7 +193,7 @@ Partial Class ajouter_prod
         Me.Controls.Add(Me.Txt_nomprod)
         Me.Controls.Add(Me.Txt_prixprod)
         Me.Controls.Add(Me.Txt_quantiteprod)
-        Me.Controls.Add(Me.Txt_code_prod)
+        Me.Controls.Add(Me.CBCodeProd)
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.Label2)
@@ -213,7 +214,7 @@ Partial Class ajouter_prod
     Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents Label3 As System.Windows.Forms.Label
     Friend WithEvents Label4 As System.Windows.Forms.Label
-    Friend WithEvents Txt_code_prod As System.Windows.Forms.TextBox
+    Friend WithEvents CBCodeProd As System.Windows.Forms.ComboBox
     Friend WithEvents Txt_quantiteprod As System.Windows.Forms.TextBox
     Friend WithEvents Txt_prixprod As System.Windows.Forms.TextBox
     Friend WithEvents Txt_nomprod As System.Windows.Forms.TextBox

@@ -1,5 +1,95 @@
 ﻿Public Class ajouter_prod
 
+    Private Sub PopulerCodesProduits()
+        Try
+            Dim texteSaisi As String = CBCodeProd.Text.Trim()
+
+            CBCodeProd.Items.Clear()
+            open()
+            cmd.Connection = con
+            cmd.CommandText = "SELECT code_prod FROM produit ORDER BY code_prod"
+            Dim dr As SqlClient.SqlDataReader = cmd.ExecuteReader()
+
+            While dr.Read()
+                CBCodeProd.Items.Add(dr("code_prod").ToString())
+            End While
+
+            dr.Close()
+
+            If texteSaisi <> "" Then
+                CBCodeProd.Text = texteSaisi
+                CBCodeProd.SelectionStart = CBCodeProd.Text.Length
+                CBCodeProd.SelectionLength = 0
+            End If
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors du chargement des codes produit: " & ex.Message)
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
+    Private Sub AutoRemplirProduit()
+        If CBCodeProd.Text.Trim() = "" Then
+            Txt_nomprod.Text = ""
+            Txt_prixprod.Text = ""
+            Txt_quantiteprod.Text = "0"
+            Exit Sub
+        End If
+
+        Dim codeProd As Decimal
+        If Not Decimal.TryParse(CBCodeProd.Text.Trim(), codeProd) Then
+            Txt_nomprod.Text = ""
+            Txt_prixprod.Text = ""
+            Txt_quantiteprod.Text = "0"
+            Exit Sub
+        End If
+
+        Try
+            open()
+            cmd.Connection = con
+            cmd.CommandText = "SELECT nom_prod, prix_prod, quantite_ FROM produit WHERE code_prod = @code_prod"
+            cmd.Parameters.Clear()
+            cmd.Parameters.AddWithValue("@code_prod", codeProd)
+            Dim dr As SqlClient.SqlDataReader = cmd.ExecuteReader()
+
+            If dr.Read() Then
+                Txt_nomprod.Text = dr("nom_prod").ToString()
+                Txt_prixprod.Text = dr("prix_prod").ToString()
+                Txt_quantiteprod.Text = dr("quantite_").ToString()
+            Else
+                Txt_nomprod.Text = ""
+                Txt_prixprod.Text = ""
+                Txt_quantiteprod.Text = "0"
+            End If
+
+            dr.Close()
+        Catch ex As Exception
+            MessageBox.Show("Erreur: " & ex.Message)
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
+    Private Sub CBCodeProd_SelectionChangeCommitted(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeProd.SelectionChangeCommitted
+        AutoRemplirProduit()
+    End Sub
+
+    Private Sub CBCodeProd_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeProd.Click
+        If CBCodeProd.Items.Count > 0 Then
+            CBCodeProd.DroppedDown = True
+        End If
+    End Sub
+
+    Private Sub CBCodeProd_Leave(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CBCodeProd.Leave
+        If CBCodeProd.FindStringExact(CBCodeProd.Text.Trim()) >= 0 Then
+            AutoRemplirProduit()
+        End If
+    End Sub
+
     Private Sub ChargerProduits()
         Try
             DGProduit.Rows.Clear()
@@ -23,11 +113,14 @@
     End Sub
 
     Private Sub ajouter_prod_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        CBCodeProd.AutoCompleteMode = AutoCompleteMode.SuggestAppend
+        CBCodeProd.AutoCompleteSource = AutoCompleteSource.ListItems
+        PopulerCodesProduits()
         ChargerProduits()
     End Sub
 
     Private Function ValiderChamps() As Boolean
-        If Txt_code_prod.Text.Trim() = "" OrElse Txt_nomprod.Text.Trim() = "" OrElse Txt_prixprod.Text.Trim() = "" OrElse Txt_quantiteprod.Text.Trim() = "" Then
+        If CBCodeProd.Text.Trim() = "" OrElse Txt_nomprod.Text.Trim() = "" OrElse Txt_prixprod.Text.Trim() = "" OrElse Txt_quantiteprod.Text.Trim() = "" Then
             MessageBox.Show("Veuillez remplir tous les champs.")
             Return False
         End If
@@ -35,9 +128,9 @@
         Dim codeProd As Decimal
         Dim prixProd As Decimal
         Dim quantiteProd As Decimal
-        If Not Decimal.TryParse(Txt_code_prod.Text.Trim(), codeProd) Then
+        If Not Decimal.TryParse(CBCodeProd.Text.Trim(), codeProd) Then
             MessageBox.Show("Code produit invalide.")
-            Txt_code_prod.Focus()
+            CBCodeProd.Focus()
             Return False
         End If
 
@@ -57,11 +150,11 @@
     End Function
 
     Private Sub ViderChamps()
-        Txt_code_prod.Text = ""
+        CBCodeProd.Text = ""
         Txt_nomprod.Text = ""
         Txt_prixprod.Text = ""
         Txt_quantiteprod.Text = "0"
-        Txt_code_prod.Focus()
+        CBCodeProd.Focus()
     End Sub
 
     Private Sub Label2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Label2.Click
@@ -78,14 +171,13 @@
             cmd.Connection = con
             cmd.CommandText = "INSERT INTO produit(code_prod, nom_prod, prix_prod, quantite_) VALUES (@code_prod, @nom_prod, @prix_prod, @quantite_ )"
             cmd.Parameters.Clear()
-            cmd.Parameters.AddWithValue("@code_prod", CDec(Txt_code_prod.Text.Trim()))
+            cmd.Parameters.AddWithValue("@code_prod", CDec(CBCodeProd.Text.Trim()))
             cmd.Parameters.AddWithValue("@nom_prod", Txt_nomprod.Text.Trim())
             cmd.Parameters.AddWithValue("@prix_prod", CDec(Txt_prixprod.Text.Trim()))
             cmd.Parameters.AddWithValue("@quantite_", CDec(Txt_quantiteprod.Text.Trim()))
             cmd.ExecuteNonQuery()
             MessageBox.Show("PRODUIT ajouté avec succés")
             ViderChamps()
-            ChargerProduits()
 
         Catch ex As Exception
             MessageBox.Show("Erreur: " & ex.Message)
@@ -93,6 +185,13 @@
             If con.State = ConnectionState.Open Then
                 con.Close()
             End If
+        End Try
+
+        Try
+            PopulerCodesProduits()
+            ChargerProduits()
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors de la mise à jour de la liste: " & ex.Message)
         End Try
     End Sub
 
@@ -109,11 +208,10 @@
             cmd.Parameters.AddWithValue("@nom_prod", Txt_nomprod.Text.Trim())
             cmd.Parameters.AddWithValue("@prix_prod", CDec(Txt_prixprod.Text.Trim()))
             cmd.Parameters.AddWithValue("@quantite_", CDec(Txt_quantiteprod.Text.Trim()))
-            cmd.Parameters.AddWithValue("@code_prod", CDec(Txt_code_prod.Text.Trim()))
+            cmd.Parameters.AddWithValue("@code_prod", CDec(CBCodeProd.Text.Trim()))
 
             Dim lignesMaj As Integer = cmd.ExecuteNonQuery()
             If lignesMaj > 0 Then
-                ChargerProduits()
                 MessageBox.Show("produit modifié avec succés")
                 ViderChamps()
             Else
@@ -126,6 +224,13 @@
             If con.State = ConnectionState.Open Then
                 con.Close()
             End If
+        End Try
+
+        Try
+            PopulerCodesProduits()
+            ChargerProduits()
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors de la mise à jour de la liste: " & ex.Message)
         End Try
     End Sub
 End Class
