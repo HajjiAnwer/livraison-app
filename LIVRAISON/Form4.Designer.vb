@@ -41,6 +41,8 @@ Partial Class ajouter_bon_liv
         Me.CBclt = New System.Windows.Forms.ComboBox()
         Me.Txtnub1 = New System.Windows.Forms.TextBox()
         Me.Label14 = New System.Windows.Forms.Label()
+        Me.CBCommande = New System.Windows.Forms.ComboBox()
+        Me.LabelCommande = New System.Windows.Forms.Label()
         Me.DateTimePicker1 = New System.Windows.Forms.DateTimePicker()
         Me.CBCodeProd = New System.Windows.Forms.ComboBox()
         Me.Txtprix = New System.Windows.Forms.TextBox()
@@ -223,6 +225,8 @@ Partial Class ajouter_bon_liv
         Me.GroupBox1.Controls.Add(Me.CBclt)
         Me.GroupBox1.Controls.Add(Me.Txtnub1)
         Me.GroupBox1.Controls.Add(Me.Label14)
+        Me.GroupBox1.Controls.Add(Me.CBCommande)
+        Me.GroupBox1.Controls.Add(Me.LabelCommande)
         Me.GroupBox1.Controls.Add(Me.DateTimePicker1)
         Me.GroupBox1.Controls.Add(Me.Label2)
         Me.GroupBox1.Controls.Add(Me.Txtadresse)
@@ -269,6 +273,28 @@ Partial Class ajouter_bon_liv
         Me.Label14.TabIndex = 18
         Me.Label14.Text = "Num Client"
         Me.Label14.Visible = False
+        '
+        'CBCommande
+        '
+        Me.CBCommande.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.CBCommande.FormattingEnabled = True
+        Me.CBCommande.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.CBCommande.Location = New System.Drawing.Point(417, 31)
+        Me.CBCommande.Name = "CBCommande"
+        Me.CBCommande.Size = New System.Drawing.Size(100, 24)
+        Me.CBCommande.TabIndex = 20
+        '
+        'LabelCommande
+        '
+        Me.LabelCommande.AutoSize = True
+        Me.LabelCommande.BackColor = System.Drawing.Color.White
+        Me.LabelCommande.ForeColor = System.Drawing.Color.Black
+        Me.LabelCommande.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.LabelCommande.Location = New System.Drawing.Point(316, 34)
+        Me.LabelCommande.Name = "LabelCommande"
+        Me.LabelCommande.Size = New System.Drawing.Size(95, 18)
+        Me.LabelCommande.TabIndex = 21
+        Me.LabelCommande.Text = "Commande (Opt)"
         '
         'DateTimePicker1
         '
@@ -521,4 +547,6 @@ Partial Class ajouter_bon_liv
     Friend WithEvents CBclt As System.Windows.Forms.ComboBox
     Friend WithEvents CBproduit As System.Windows.Forms.ComboBox
     Friend WithEvents Button2 As System.Windows.Forms.Button
+    Friend WithEvents CBCommande As System.Windows.Forms.ComboBox
+    Friend WithEvents LabelCommande As System.Windows.Forms.Label
 End Class

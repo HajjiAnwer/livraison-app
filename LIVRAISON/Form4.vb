@@ -3,6 +3,36 @@ Public Class ajouter_bon_liv
     Private EnMiseAJourClient As Boolean = False
     Private EnMiseAJourProduit As Boolean = False
 
+    Private Sub AssurerSchemaBonLivraison()
+        Try
+            open()
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = _
+                "IF OBJECT_ID('dbo.bon_livraison', 'U') IS NULL " & _
+                "BEGIN " & _
+                "CREATE TABLE bon_livraison (" & _
+                "num_liv INT PRIMARY KEY, " & _
+                "date_liv DATE NOT NULL, " & _
+                "code_clt DECIMAL(18,0) NOT NULL, " & _
+                "num_commande INT NULL" & _
+                ") " & _
+                "END; " & _
+                "IF COL_LENGTH('dbo.bon_livraison', 'num_commande') IS NULL " & _
+                "BEGIN " & _
+                "ALTER TABLE bon_livraison ADD num_commande INT NULL " & _
+                "END"
+            cmd.ExecuteNonQuery()
+        Catch ex As Exception
+            MessageBox.Show("Erreur preparation schema bon livraison: " & ex.Message)
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
     Private Sub PopulerCodesClientsBL()
         Try
             Dim texteSaisi As String = CBCodeClt.Text.Trim()
@@ -60,6 +90,32 @@ Public Class ajouter_bon_liv
             End If
         Catch ex As Exception
             MessageBox.Show("Erreur lors du chargement des codes produit: " & ex.Message)
+        Finally
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
+    End Sub
+
+    Private Sub PopulerCommandesBL()
+        Try
+            CBCommande.Items.Clear()
+            open()
+            cmd.Connection = con
+            cmd.CommandType = CommandType.Text
+            cmd.Parameters.Clear()
+            cmd.CommandText = "SELECT num_commande FROM commande ORDER BY num_commande DESC"
+            dr = cmd.ExecuteReader()
+
+            CBCommande.Items.Add("")  ' Add empty option for optional selection
+            While dr.Read()
+                CBCommande.Items.Add(dr("num_commande").ToString())
+            End While
+
+            dr.Close()
+            CBCommande.SelectedIndex = 0  ' Select empty by default
+        Catch ex As Exception
+            ' No error display - commandes are optional
         Finally
             If con.State = ConnectionState.Open Then
                 con.Close()
@@ -270,7 +326,6 @@ Public Class ajouter_bon_liv
         Dim totalLigne As Decimal
         Dim numLigne As Integer
         Dim codeProduit As Integer
-        Dim numLiv As Integer
 
         If CBproduit.SelectedItem Is Nothing Then
             MessageBox.Show("Veuillez choisir un produit.")
@@ -293,12 +348,6 @@ Public Class ajouter_bon_liv
             Exit Sub
         End If
 
-        If Not Integer.TryParse(Txtnub1.Text.Trim(), numLiv) Then
-            MessageBox.Show("Numero BL invalide.")
-            Txtnub1.Focus()
-            Exit Sub
-        End If
-
         If Not LireDecimal(Txtqun.Text.Trim(), quantite) Then
             MessageBox.Show("Quantite invalide.")
             Txtqun.Focus()
@@ -311,28 +360,8 @@ Public Class ajouter_bon_liv
             Exit Sub
         End If
 
-        Try
-            open()
-            cmd.Connection = con
-            cmd.CommandType = CommandType.Text
-            cmd.CommandText = "INSERT INTO lignelivraison (num_ligne, quantite, total_ligne, num_liv, code_prod) VALUES (@num_ligne, @quantite, @total_ligne, @num_liv, @code_prod)"
-            cmd.Parameters.Clear()
-            cmd.Parameters.AddWithValue("@num_ligne", numLigne)
-            cmd.Parameters.AddWithValue("@quantite", quantite)
-            cmd.Parameters.AddWithValue("@total_ligne", totalLigne)
-            cmd.Parameters.AddWithValue("@num_liv", numLiv)
-            cmd.Parameters.AddWithValue("@code_prod", codeProduit)
-            cmd.ExecuteNonQuery()
-        Catch ex As Exception
-            MessageBox.Show("Erreur lors de l'ajout de ligne: " & ex.Message)
-            Exit Sub
-        Finally
-            If con.State = ConnectionState.Open Then
-                con.Close()
-            End If
-        End Try
-
-        ChargerBonLivraisonExistants()
+        ' Stage line in grid; DB insert happens only on Ajouter BL.
+        DG1.Rows.Add(numLigne, codeProduit, CBproduit.Text.Trim(), Txtprix.Text.Trim(), quantite, totalLigne)
 
         Txt_total_liv.Text = CDec(Txt_total_liv.Text) + CDec(Txtligne.Text)
         Txtprix.Text = ""
@@ -344,6 +373,7 @@ Public Class ajouter_bon_liv
     End Sub
 
     Private Sub ajouter_bon_liv_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        AssurerSchemaBonLivraison()
         chargerclients(CBclt)
         Button2.Text = "Ajouter BL"
         Button1.Text = "Ajouter Ligne"
@@ -357,7 +387,9 @@ Public Class ajouter_bon_liv
         CBCodeProd.AutoCompleteSource = AutoCompleteSource.ListItems
         PopulerCodesProduitsBL()
 
-        ChargerBonLivraisonExistants()
+        PopulerCommandesBL()
+
+        DG1.Rows.Clear()
         InitialiserNumeroBL()
 
         Txt_num_liv.Text = "1"
@@ -475,9 +507,92 @@ Public Class ajouter_bon_liv
     End Sub
 
     Private Sub Button2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Button2.Click
-        MessageBox.Show("Les lignes sont deja enregistrees lors de 'Ajouter Ligne'.")
-        ChargerBonLivraisonExistants()
-        ViderChampsSaisieBL()
+        Dim numLiv As Integer
+        Dim codeClient As Decimal
+        Dim numCommande As Integer
+        Dim nbLignes As Integer = 0
+
+        For Each row As DataGridViewRow In DG1.Rows
+            If Not row.IsNewRow Then
+                nbLignes += 1
+            End If
+        Next
+
+        If nbLignes = 0 Then
+            MessageBox.Show("Veuillez d'abord ajouter au moins une ligne.")
+            Exit Sub
+        End If
+
+        If Not Integer.TryParse(Txtnub1.Text.Trim(), numLiv) Then
+            MessageBox.Show("Numero BL invalide.")
+            Txtnub1.Focus()
+            Exit Sub
+        End If
+
+        If Not Decimal.TryParse(CBCodeClt.Text.Trim(), codeClient) Then
+            MessageBox.Show("Code client invalide.")
+            CBCodeClt.Focus()
+            Exit Sub
+        End If
+
+        If CBCommande.SelectedIndex <= 0 OrElse Not Integer.TryParse(CBCommande.SelectedItem.ToString(), numCommande) Then
+            MessageBox.Show("Veuillez selectionner une commande avant d'ajouter le BL.")
+            CBCommande.Focus()
+            Exit Sub
+        End If
+
+        Try
+            open()
+            Dim trans As SqlClient.SqlTransaction = con.BeginTransaction()
+            cmd.Connection = con
+            cmd.Transaction = trans
+            cmd.CommandType = CommandType.Text
+
+            ' Insert BL header only now (on Ajouter BL)
+            cmd.Parameters.Clear()
+            cmd.CommandText = "IF NOT EXISTS (SELECT 1 FROM bon_livraison WHERE num_liv = @num_liv) " & _
+                             "BEGIN INSERT INTO bon_livraison (num_liv, date_liv, code_clt, num_commande) VALUES (@num_liv, @date_liv, @code_clt, @num_commande) END " & _
+                             "ELSE BEGIN UPDATE bon_livraison SET date_liv=@date_liv, code_clt=@code_clt, num_commande=@num_commande WHERE num_liv=@num_liv END"
+            cmd.Parameters.AddWithValue("@num_liv", numLiv)
+            cmd.Parameters.AddWithValue("@date_liv", DateTimePicker1.Value.Date)
+            cmd.Parameters.AddWithValue("@code_clt", codeClient)
+            cmd.Parameters.AddWithValue("@num_commande", numCommande)
+            cmd.ExecuteNonQuery()
+
+            ' Insert all staged lines
+            For Each row As DataGridViewRow In DG1.Rows
+                If row.IsNewRow Then
+                    Continue For
+                End If
+
+                Dim ligne As Integer = Convert.ToInt32(row.Cells(0).Value)
+                Dim codeProd As Integer = Convert.ToInt32(row.Cells(1).Value)
+                Dim qte As Decimal = Convert.ToDecimal(row.Cells(4).Value)
+                Dim total As Decimal = Convert.ToDecimal(row.Cells(5).Value)
+
+                cmd.Parameters.Clear()
+                cmd.CommandText = "INSERT INTO lignelivraison (num_ligne, quantite, total_ligne, num_liv, code_prod) VALUES (@num_ligne, @quantite, @total_ligne, @num_liv, @code_prod)"
+                cmd.Parameters.AddWithValue("@num_ligne", ligne)
+                cmd.Parameters.AddWithValue("@quantite", qte)
+                cmd.Parameters.AddWithValue("@total_ligne", total)
+                cmd.Parameters.AddWithValue("@num_liv", numLiv)
+                cmd.Parameters.AddWithValue("@code_prod", codeProd)
+                cmd.ExecuteNonQuery()
+            Next
+
+            trans.Commit()
+            MessageBox.Show("Bon de livraison enregistre avec succes.")
+            DG1.Rows.Clear()
+            ViderChampsSaisieBL()
+
+        Catch ex As Exception
+            MessageBox.Show("Erreur lors de l'enregistrement du BL: " & ex.Message)
+        Finally
+            cmd.Transaction = Nothing
+            If con.State = ConnectionState.Open Then
+                con.Close()
+            End If
+        End Try
     End Sub
 
 End Class

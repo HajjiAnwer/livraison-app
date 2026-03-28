@@ -1,4 +1,6 @@
-﻿Public Class ajouter_clt
+﻿Imports System.Collections.Generic
+
+Public Class ajouter_clt
 
     Private TousLesCodesClients As New List(Of String)()
 

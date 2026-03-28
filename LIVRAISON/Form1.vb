@@ -19,4 +19,14 @@
         f.Show()
     End Sub
 
+    Private Sub AjouterCommandeToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles AjouterCommandeToolStripMenuItem.Click
+        Dim f As New Form5()
+        f.Show()
+    End Sub
+
+    Private Sub GestionBLToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles GestionBLToolStripMenuItem.Click
+        Dim f As New Form6()
+        f.Show()
+    End Sub
+
 End Class

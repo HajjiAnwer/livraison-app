@@ -32,3 +32,5 @@ C:\Users\DELL\Downloads\LIVRAISON\LIVRAISON\obj\x86\Debug\LIVRAISON.vbproj.Gener
 C:\Users\DELL\Downloads\LIVRAISON\LIVRAISON\obj\x86\Debug\LIVRAISON.exe
 C:\Users\DELL\Downloads\LIVRAISON\LIVRAISON\obj\x86\Debug\LIVRAISON.xml
 C:\Users\DELL\Downloads\LIVRAISON\LIVRAISON\obj\x86\Debug\LIVRAISON.pdb
+C:\Users\DELL\Downloads\LIVRAISON\LIVRAISON\obj\x86\Debug\WindowsApplication1.Form5.resources
+C:\Users\DELL\Downloads\LIVRAISON\LIVRAISON\obj\x86\Debug\WindowsApplication1.Form6.resources

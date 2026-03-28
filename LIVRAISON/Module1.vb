@@ -11,10 +11,22 @@ Module Module1
     Public cmdl As SqlCommand
 
     Public Sub open()
-        con.ConnectionString = "Data Source=DESKTOP-0QAL8J1;Initial Catalog=livraison;Integrated Security=True;TrustServerCertificate=True"
+        Dim cs As String = "Data Source=DESKTOP-0QAL8J1;Initial Catalog=livraison;Integrated Security=True;TrustServerCertificate=True"
+
+        If con.State = ConnectionState.Open Then
+            Return
+        End If
+
+        If con.State = ConnectionState.Broken Then
+            con.Close()
+        End If
+
+        If con.ConnectionString <> cs Then
+            con.ConnectionString = cs
+        End If
+
         con.Open()
         If con.State <> ConnectionState.Open Then
-           
             MsgBox("connection échoué", MsgBoxStyle.Information, "Status")
         End If
     End Sub
